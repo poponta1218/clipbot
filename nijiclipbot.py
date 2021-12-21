@@ -94,7 +94,7 @@ def make_api():
     CK = config.API_KEY
     CS = config.API_KEY_SECRET
     AT = config.ACCESS_TOKEN
-    AS = config.ACCSESS_TOKEN_SECRET
+    AS = config.ACCESS_TOKEN_SECRET
 
     auth = tweepy.OAuthHandler(CK, CS)
     auth.set_access_token(AT, AS)
