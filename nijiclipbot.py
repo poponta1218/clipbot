@@ -16,28 +16,27 @@ start_time = time.perf_counter()
 def generate_tweet():
     nico_res = get_clip_info()
     twit_status_list = format_info(nico_res)
-    # twit_status_list = [["テスト"], ["スレッド機能テスト"]]
 
     if twit_status_list == [[], []]:
         return
     else:
         count = 0
         while count < len(twit_status_list[0]):
-            # info_tweet = make_api().update_status(
-            #     status=twit_status_list[0][count]
-            # )
-            # make_api().update_status(
-            #     status=twit_status_list[1][count],
-            #     in_reply_to_status_id=info_tweet.id,
-            #     auto_populate_reply_metadata=True
-            # )
+            info_tweet = make_api().update_status(
+                status=twit_status_list[0][count]
+            )
+            make_api().update_status(
+                status=twit_status_list[1][count],
+                in_reply_to_status_id=info_tweet.id,
+                auto_populate_reply_metadata=True
+            )
             print(
                 twit_status_list[0][count] + "\n"
                 + twit_status_list[1][count] + "\n"
                 + "ツイート完了"
             )
             count = count + 1
-            time.sleep(1)
+            time.sleep(300)
         print("完了" + "\n" + "ツイート数:" + str(count))
 
 
@@ -53,13 +52,12 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
     last_modified = datetime.fromisoformat(
         json.loads(urllib.request.urlopen(api_req).read())["last_modified"]
     )
-    if last_modified <= tdy:
+    if last_modified >= tdy:
         nico_endpoint = "https://api.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
         nico_params = {
             "q": "nijisanji_kr OR nijisanji_id OR nijisanji_en OR nijisanji_in OR virtuareal OR virtuareal_project OR にじさんじKR OR にじさんじEN OR にじさんじID OR にじさんじIN",
             "targets": "tagsExact",
             "fields": "title,startTime,tags,contentId,userId",
-            # ytd.isoformat(),
             "filters[startTime][gte]": ytd.isoformat(),
             "filters[startTime][lt]": tdy.isoformat(),
             "_sort": "+startTime",
