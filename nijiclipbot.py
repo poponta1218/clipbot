@@ -6,25 +6,38 @@ import urllib.parse
 
 import tweepy
 
+from tag_dict import tag_dict
 import config
 
 
 start_time = time.perf_counter()
 
 
-def main():
+def generate_tweet():
     nico_res = get_clip_info()
-    twit_content_list = format_info(nico_res)
-    if twit_content_list == []:
+    twit_status_list = format_info(nico_res)
+    # twit_status_list = [["テスト"], ["スレッド機能テスト"]]
+
+    if twit_status_list == [[], []]:
         return
     else:
         count = 0
-        for twit_content in twit_content_list:
-            make_api().update_status(twit_content)
-            # APIがエラー吐いたときの処理を実装する．Twitter,ニコニコのエラー処理は統合してもいいかも？
-            print(twit_content + "\n" + "ツイート完了")
+        while count < len(twit_status_list[0]):
+            # info_tweet = make_api().update_status(
+            #     status=twit_status_list[0][count]
+            # )
+            # make_api().update_status(
+            #     status=twit_status_list[1][count],
+            #     in_reply_to_status_id=info_tweet.id,
+            #     auto_populate_reply_metadata=True
+            # )
+            print(
+                twit_status_list[0][count] + "\n"
+                + twit_status_list[1][count] + "\n"
+                + "ツイート完了"
+            )
             count = count + 1
-            time.sleep(300)
+            time.sleep(1)
         print("完了" + "\n" + "ツイート数:" + str(count))
 
 
@@ -40,18 +53,18 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
     last_modified = datetime.fromisoformat(
         json.loads(urllib.request.urlopen(api_req).read())["last_modified"]
     )
-    if last_modified >= tdy:
+    if last_modified <= tdy:
         nico_endpoint = "https://api.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
         nico_params = {
-            "q": "nijisanji_kr OR nijisanji_id OR nijisanji_en OR nijisanji_in OR virtuareal OR にじさんじKR OR にじさんじEN OR にじさんじID OR にじさんじIN",
+            "q": "nijisanji_kr OR nijisanji_id OR nijisanji_en OR nijisanji_in OR virtuareal OR virtuareal_project OR にじさんじKR OR にじさんじEN OR にじさんじID OR にじさんじIN",
             "targets": "tagsExact",
-            "fields": "title,startTime,contentId",
+            "fields": "title,startTime,tags,contentId,userId",
+            # ytd.isoformat(),
             "filters[startTime][gte]": ytd.isoformat(),
             "filters[startTime][lt]": tdy.isoformat(),
             "_sort": "+startTime",
             "_context": "2434os_clipFilter",
-            "_limit": 100
-        }
+            "_limit": 100}
         nico_req = urllib.request.Request(
             "{}?{}".format(nico_endpoint, urllib.parse.urlencode(nico_params))
         )
@@ -77,17 +90,44 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
 
 def format_info(nico_res):
     twit_content_list = []
+    twit_tag_list = []
+    ng_id_list = [9264517, 92490088, 91829394]
+
     if nico_res == []:
         print("新着動画なし")
     else:
         for info in nico_res:
-            post_date = datetime.fromisoformat(
-                info["startTime"]).strftime("%Y/%m/%d %H:%M")
-            twit_content = info["title"] + "\n"\
-                + post_date + "投稿" + "\n"\
-                + "https://nico.ms/" + info["contentId"]
-            twit_content_list.append(twit_content)
-    return twit_content_list
+            if info["userId"] not in ng_id_list:
+                post_date = datetime.fromisoformat(
+                    info["startTime"]).strftime("%Y/%m/%d %H:%M")
+                twit_content = "新着動画" + "\n"\
+                    + info["title"] + "\n"\
+                    + post_date + "投稿" + "\n"\
+                    + "https://nico.ms/" + info["contentId"]
+                twit_content_list.append(twit_content)
+                twit_tag = make_hashtag(info)
+                twit_tag_list.append(twit_tag)
+    twit_status_list = [twit_content_list, twit_tag_list]
+    return twit_status_list
+
+
+def make_hashtag(info):
+    tag = info["tags"].replace("（", "(").replace("）", ")")
+    nico_tag_list = tag.casefold().split()
+    tag_list = []
+    hashtag_list = []
+    twit_tag = ""
+
+    for nico_tag in nico_tag_list:
+        if nico_tag in tag_dict:
+            tag_list.append(tag_dict[nico_tag])
+    for tag in tag_list:
+        if tag not in hashtag_list:
+            hashtag_list.append(tag)
+    for tag in hashtag_list:
+        twit_tag += "#" + tag + " "
+    twit_tag = twit_tag[:-1]
+    return twit_tag
 
 
 def make_api():
@@ -102,4 +142,4 @@ def make_api():
 
 
 if __name__ == "__main__":
-    main()
+    generate_tweet()
