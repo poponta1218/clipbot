@@ -15,24 +15,16 @@ start_time = time.perf_counter()
 
 def generate_tweet():
     nico_res = get_clip_info()
-    twit_status_list = format_info(nico_res)
+    twit_content_list = format_info(nico_res)
 
-    if twit_status_list == [[], []]:
+    if twit_content_list == []:
         return
     else:
         count = 0
-        while count < len(twit_status_list[0]):
-            info_tweet = make_api().update_status(
-                status=twit_status_list[0][count]
-            )
-            make_api().update_status(
-                status=twit_status_list[1][count],
-                in_reply_to_status_id=info_tweet.id,
-                auto_populate_reply_metadata=True
-            )
+        while count < len(twit_content_list):
+            make_api().update_status(status=twit_content_list[count])
             print(
-                twit_status_list[0][count] + "\n"
-                + twit_status_list[1][count] + "\n"
+                twit_content_list[count] + "\n"
                 + "ツイート完了"
             )
             count = count + 1
@@ -88,7 +80,6 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
 
 def format_info(nico_res):
     twit_content_list = []
-    twit_tag_list = []
     ng_id_list = [9264517, 92490088, 91829394]
 
     if nico_res == []:
@@ -98,15 +89,14 @@ def format_info(nico_res):
             if info["userId"] not in ng_id_list:
                 post_date = datetime.fromisoformat(
                     info["startTime"]).strftime("%Y/%m/%d %H:%M")
+                twit_tag = make_hashtag(info)
                 twit_content = "新着動画" + "\n"\
                     + info["title"] + "\n"\
                     + post_date + "投稿" + "\n"\
+                    + twit_tag + "\n"\
                     + "https://nico.ms/" + info["contentId"]
                 twit_content_list.append(twit_content)
-                twit_tag = make_hashtag(info)
-                twit_tag_list.append(twit_tag)
-    twit_status_list = [twit_content_list, twit_tag_list]
-    return twit_status_list
+    return twit_content_list
 
 
 def make_hashtag(info):
