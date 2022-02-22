@@ -31,7 +31,7 @@ tag_dict = {
     "エナー・アールウェット": "EnnaLively",
     "nina_kosaka": "KosaCast",
     "狐坂ニナ": "KosaCast",
-    "reimu_endo": "ReimuLive",
+    "reimu_endou": "ReimuLive",
     "遠藤霊夢": "ReimuLive",
     "millie_parfait": "Millieseconds",
     "ミリー・パフェ": "Millieseconds",
