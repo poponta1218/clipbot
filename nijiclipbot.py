@@ -47,7 +47,7 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
     if last_modified >= tdy:
         nico_endpoint = "https://api.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
         nico_params = {
-            "q": "nijisanji_kr OR nijisanji_id OR nijisanji_en OR nijisanji_in OR virtuareal OR virtuareal_project OR にじさんじKR OR にじさんじEN OR にじさんじID OR にじさんじIN",
+            "q": "nijisanji_kr OR nijisanji_id OR nijisanji_en OR nijisanji_in OR virtuareal OR virtuareal_project OR にじさんじKR OR にじさんじEN OR にじさんじID OR にじさんじIN -MMD -にじさんじMMD",
             "targets": "tagsExact",
             "fields": "title,startTime,tags,contentId,userId",
             "filters[startTime][gte]": ytd.isoformat(),
