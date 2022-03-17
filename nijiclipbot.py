@@ -46,32 +46,45 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
     )
     if last_modified >= tdy:
         nico_endpoint = "https://api.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
-        nico_params = {
-            "q": "nijisanji_kr OR nijisanji_id OR nijisanji_en OR nijisanji_in OR virtuareal OR virtuareal_project OR にじさんじKR OR にじさんじEN OR にじさんじID OR にじさんじIN -MMD -にじさんじMMD",
-            "targets": "tagsExact",
-            "fields": "title,startTime,tags,contentId,userId",
-            "filters[startTime][gte]": ytd.isoformat(),
-            "filters[startTime][lt]": tdy.isoformat(),
-            "_sort": "+startTime",
-            "_context": "2434os_clipFilter",
-            "_limit": 100}
-        nico_req = urllib.request.Request(
-            "{}?{}".format(nico_endpoint, urllib.parse.urlencode(nico_params))
-        )
-        nico_res = json.loads(urllib.request.urlopen(nico_req).read())
-        if nico_res["meta"]["status"] == 200:
-            nico_res = nico_res["data"]
-        else:
-            print("エラー:10分後に再度アクセスします")
-            time.sleep(600)
-            med_time = time.perf_counter()
-            elapsed_time = med_time - start_time
-            if elapsed_time <= 7200:
-                get_clip_info()
+        nico_res = []
+        nico_tag_dict = list(tag_dict.keys())
+        length = len(nico_tag_dict)
+        n = 0
+        s = 15
+        for i in nico_tag_dict:
+            split_tag_dict = nico_tag_dict[n:n + s:1]
+            search_q = " OR ".join(split_tag_dict) + " -MMD -にじさんじMMD"
+            n += s
+            if n >= length:
+                break
+            nico_params = {
+                "q": search_q,
+                "targets": "tagsExact",
+                "fields": "title,startTime,tags,contentId,userId",
+                "filters[startTime][gte]": ytd.isoformat(),
+                "filters[startTime][lt]": tdy.isoformat(),
+                "_sort": "+startTime",
+                "_context": "2434os_clipFilter",
+                "_limit": 100}
+            nico_req = urllib.request.Request("{}?{}".format(
+                nico_endpoint, urllib.parse.urlencode(nico_params)))
+            split_nico_res = json.loads(
+                urllib.request.urlopen(nico_req).read())
+            if split_nico_res["meta"]["status"] == 200:
+                if split_nico_res["data"] != []:
+                    nico_res.append(split_nico_res["data"][0])
+                    nico_res = list(map(json.loads, set(map(json.dumps, nico_res))))
+                    nico_res = sorted(nico_res, key=lambda x: x["startTime"])
             else:
-                print("タイムアウト:終了します")
-                nico_res = []
-                return
+                print("エラー:10分後に再度アクセスします")
+                time.sleep(600)
+                med_time = time.perf_counter()
+                elapsed_time = med_time - start_time
+                if elapsed_time <= 7200:
+                    get_clip_info()
+                else:
+                    print("タイムアウト:終了します")
+                    return
     else:
         print("切り替え日時:" + last_modified.strftime("%Y/%m/%d %H:%M"))
         nico_res = []
