@@ -223,5 +223,10 @@ tag_dict = {
     # "karon": "KaronStream",
     # "诺莺": "NoxStream",
     # "诺莺nox": "NoxStream",
-    # "nox": "NoxStream"
+    # "nox": "NoxStream",
+    # "恋诗夜": "KoxiaLive",
+    # "恋詩夜": "KoxiaLive",
+    # "恋诗夜koxia": "KoxiaLive",
+    # "恋詩夜koxia": "KoxiaLive",
+    # "koxia": "KoxiaLive"
 }
