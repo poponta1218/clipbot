@@ -44,13 +44,13 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
     last_modified = datetime.fromisoformat(
         json.loads(urllib.request.urlopen(api_req).read())["last_modified"]
     )
+    nico_res = []
     if last_modified >= tdy:
         nico_endpoint = "https://api.search.nicovideo.jp/api/v2/snapshot/video/contents/search"
-        nico_res = []
         nico_tag_dict = list(tag_dict.keys())
         length = len(nico_tag_dict)
         n = 0
-        s = 15
+        s = 100
         for i in nico_tag_dict:
             split_tag_dict = nico_tag_dict[n:n + s:1]
             search_q = " OR ".join(split_tag_dict) + " -MMD -にじさんじMMD"
@@ -65,16 +65,20 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
                 "filters[startTime][lt]": tdy.isoformat(),
                 "_sort": "+startTime",
                 "_context": "2434os_clipFilter",
-                "_limit": 100}
+                "_limit": 100
+                # "_offset": ランダムツイート時に使用
+            }
             nico_req = urllib.request.Request("{}?{}".format(
                 nico_endpoint, urllib.parse.urlencode(nico_params)))
             split_nico_res = json.loads(
-                urllib.request.urlopen(nico_req).read())
+                urllib.request.urlopen(nico_req).read()
+            )
             if split_nico_res["meta"]["status"] == 200:
-                if split_nico_res["data"] != []:
-                    nico_res.append(split_nico_res["data"][0])
-                    nico_res = list(map(json.loads, set(map(json.dumps, nico_res))))
-                    nico_res = sorted(nico_res, key=lambda x: x["startTime"])
+                nico_res += split_nico_res["data"]
+                nico_res = list(
+                    map(json.loads, set(map(json.dumps, nico_res)))
+                )
+                nico_res = sorted(nico_res, key=lambda x: x["startTime"])
             else:
                 print("エラー:10分後に再度アクセスします")
                 time.sleep(600)
@@ -87,7 +91,6 @@ def get_clip_info():  # ネスト多いし長いから関数分けたい
                     return
     else:
         print("切り替え日時:" + last_modified.strftime("%Y/%m/%d %H:%M"))
-        nico_res = []
     return nico_res
 
 
